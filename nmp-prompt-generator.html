@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NMP Image Prompt Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy: #18243a;
+    --navy-2: #1e2d48;
+    --navy-3: #243656;
+    --blue: #09a7e9;
+    --blue-2: #13b2f6;
+    --blue-3: #3abff8;
+    --off-white: #f5f4f0;
+    --warm-white: #fafaf8;
+    --border: rgba(24,36,58,0.12);
+    --border-strong: rgba(24,36,58,0.22);
+    --text-primary: #18243a;
+    --text-secondary: #5a6478;
+    --text-muted: #9aa0ad;
+    --font-sans: 'DM Sans', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+    --radius: 8px;
+    --radius-lg: 14px;
+  }
+
+  html { font-size: 16px; }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--off-white);
+    color: var(--text-primary);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  /* Header */
+  .header {
+    background: var(--navy);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: var(--font-sans);
+    font-weight: 500;
+    font-size: 22px;
+    color: #fff;
+    letter-spacing: -0.02em;
+  }
+
+  .logo span {
+    color: var(--blue-3);
+  }
+
+  .header-badge {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--blue-3);
+    border: 1px solid rgba(58,191,248,0.3);
+    padding: 3px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.06em;
+  }
+
+  /* Layout */
+  .page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2.5rem 2rem 4rem;
+  }
+
+  .page-title {
+    font-size: 28px;
+    font-weight: 300;
+    color: var(--navy);
+    margin-bottom: 6px;
+    letter-spacing: -0.02em;
+  }
+
+  .page-subtitle {
+    font-size: 15px;
+    color: var(--text-secondary);
+    margin-bottom: 2.5rem;
+  }
+
+  /* Card */
+  .card {
+    background: var(--warm-white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.75rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .card-title {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+    font-family: var(--font-mono);
+  }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 1rem;
+  }
+
+  .tab {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    font-weight: 400;
+    padding: 6px 16px;
+    border-radius: 20px;
+    border: 1px solid var(--border-strong);
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .tab:hover { background: rgba(24,36,58,0.05); }
+
+  .tab.active {
+    background: var(--navy);
+    color: #fff;
+    border-color: var(--navy);
+  }
+
+  /* Inputs */
+  textarea, input[type="text"], input[type="password"] {
+    width: 100%;
+    font-family: var(--font-sans);
+    font-size: 14px;
+    color: var(--text-primary);
+    background: #fff;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    display: block;
+    resize: vertical;
+  }
+
+  textarea:focus, input:focus {
+    outline: none;
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(9,167,233,0.12);
+  }
+
+  textarea::placeholder, input::placeholder { color: var(--text-muted); }
+
+  .char-count {
+    font-size: 12px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    margin-top: 6px;
+    text-align: right;
+  }
+
+  .char-count.warn { color: #e07c00; }
+
+  /* Options row */
+  .options-row {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    margin-top: 1.25rem;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .field label {
+    font-size: 12px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  select {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    padding: 7px 32px 7px 12px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235a6478' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center;
+    color: var(--text-primary);
+    appearance: none;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+
+  select:focus { outline: none; border-color: var(--blue); }
+
+  /* API Key row */
+  .api-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .api-row input {
+    flex: 1;
+    font-family: var(--font-mono);
+    font-size: 13px;
+  }
+
+  .api-note {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+
+  .api-note a { color: var(--blue); text-decoration: none; }
+  .api-note a:hover { text-decoration: underline; }
+
+  /* Buttons */
+  .btn {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    font-weight: 400;
+    padding: 10px 22px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border-strong);
+    background: transparent;
+    color: var(--text-primary);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .btn:hover { background: rgba(24,36,58,0.05); }
+  .btn:active { transform: scale(0.98); }
+
+  .btn-primary {
+    background: var(--navy);
+    color: #fff;
+    border-color: var(--navy);
+    font-weight: 500;
+  }
+
+  .btn-primary:hover { background: var(--navy-2); }
+
+  .btn-primary:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .btn-ghost {
+    border-color: transparent;
+    color: var(--text-secondary);
+  }
+
+  .btn-ghost:hover { background: rgba(24,36,58,0.05); color: var(--text-primary); }
+
+  .actions { display: flex; gap: 8px; margin-top: 1.25rem; flex-wrap: wrap; }
+
+  /* Topic pill */
+  .topic-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 13px;
+    color: var(--navy-2);
+    background: rgba(9,167,233,0.08);
+    border: 1px solid rgba(9,167,233,0.25);
+    border-radius: 20px;
+    padding: 5px 14px;
+    margin-bottom: 1rem;
+  }
+
+  .topic-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--blue);
+    flex-shrink: 0;
+  }
+
+  /* Results */
+  .results { display: flex; flex-direction: column; gap: 1rem; }
+
+  .prompt-card {
+    background: var(--warm-white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    animation: fadeUp 0.25s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .prompt-card:nth-child(2) { animation-delay: 0.06s; }
+  .prompt-card:nth-child(3) { animation-delay: 0.12s; }
+  .prompt-card:nth-child(4) { animation-delay: 0.18s; }
+  .prompt-card:nth-child(5) { animation-delay: 0.24s; }
+  .prompt-card:nth-child(6) { animation-delay: 0.30s; }
+
+  .prompt-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(24,36,58,0.02);
+  }
+
+  .prompt-variation {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+
+  .prompt-platform {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-left: 8px;
+  }
+
+  .platform-mj {
+    background: rgba(9,167,233,0.1);
+    color: #0882b8;
+  }
+
+  .platform-de {
+    background: rgba(24,36,58,0.08);
+    color: var(--navy-2);
+  }
+
+  .prompt-body {
+    padding: 14px 16px;
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: var(--text-primary);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .prompt-footer {
+    padding: 10px 16px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .copy-btn {
+    font-family: var(--font-sans);
+    font-size: 12px;
+    padding: 5px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--border-strong);
+    background: #fff;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.15s;
+  }
+
+  .copy-btn:hover { background: var(--navy); color: #fff; border-color: var(--navy); }
+  .copy-btn.copied { background: #0f7a4a; color: #fff; border-color: #0f7a4a; }
+
+  /* Loading */
+  .loading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 1.5rem;
+    color: var(--text-secondary);
+    font-size: 14px;
+  }
+
+  .spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--border-strong);
+    border-top-color: var(--blue);
+    border-radius: 50%;
+    animation: spin 0.65s linear infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Error */
+  .error {
+    padding: 1rem 1.25rem;
+    background: #fff5f5;
+    border: 1px solid #fcc;
+    border-radius: var(--radius);
+    color: #c0392b;
+    font-size: 13.5px;
+    line-height: 1.5;
+  }
+
+  /* Toggle show/hide key */
+  .toggle-key {
+    font-size: 12px;
+    color: var(--blue);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0 4px;
+    font-family: var(--font-mono);
+  }
+
+  /* Divider */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 1.75rem 0;
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    font-size: 12px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+    margin-top: 3rem;
+  }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    .page { padding: 1.5rem 1rem 3rem; }
+    .options-row { flex-direction: column; align-items: stretch; }
+    .header { padding: 0 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo">nmp<span>.</span></div>
+  <div class="header-badge">IMAGE PROMPT TOOL</div>
+</header>
+
+<main class="page">
+  <h1 class="page-title">Image Prompt Generator</h1>
+  <p class="page-subtitle">Paste an article URL, headline, or full body to get ready-to-use Midjourney and DALL-E prompts in the NMP editorial style.</p>
+
+  <!-- API Key Card -->
+  <div class="card" id="api-card">
+    <div class="card-title">Anthropic API Key</div>
+    <div class="api-row">
+      <input type="password" id="api-key" placeholder="sk-ant-api03-…" autocomplete="off" spellcheck="false">
+      <button class="toggle-key" onclick="toggleKey()" id="toggle-btn">show</button>
+    </div>
+    <p class="api-note">
+      Your key is stored only in this browser session and never sent anywhere except directly to <a href="https://api.anthropic.com" target="_blank">api.anthropic.com</a>.
+      Get a key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>.
+    </p>
+  </div>
+
+  <!-- Input Card -->
+  <div class="card">
+    <div class="card-title">Article Input</div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('url', this)">URL or headline</button>
+      <button class="tab" onclick="switchTab('body', this)">Full article body</button>
+    </div>
+
+    <div id="tab-url">
+      <textarea id="input-url" rows="3" placeholder="Paste a nationalmortgageprofessional.com URL or article headline&#10;e.g. 'VantageScore 4.0 adoption reaches top 30 mortgage originators'"></textarea>
+    </div>
+
+    <div id="tab-body" style="display:none">
+      <textarea id="input-body" rows="12" placeholder="Paste the full article text here…" oninput="updateCharCount()"></textarea>
+      <div class="char-count" id="char-count">0 characters</div>
+    </div>
+
+    <div class="options-row">
+      <div class="field">
+        <label for="target">Generate for</label>
+        <select id="target">
+          <option value="midjourney">Midjourney</option>
+          <option value="dalle">ChatGPT / DALL-E</option>
+          <option value="both">Both</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="variations">Variations</label>
+        <select id="variations">
+          <option value="3">3 variations</option>
+          <option value="2">2 variations</option>
+          <option value="1">1 variation</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-primary" id="gen-btn" onclick="generate()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5z"/><path d="M19 15l.75 2.25L22 18l-2.25.75L19 21l-.75-2.25L16 18l2.25-.75z"/></svg>
+        Generate prompts
+      </button>
+      <button class="btn btn-ghost" onclick="resetAll()">Clear</button>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div id="topic-area" style="display:none; margin-bottom: 0.75rem;"></div>
+  <div id="results"></div>
+
+</main>
+
+<footer class="footer">
+  Built for NMP · National Mortgage Professional · Brand-consistent editorial imagery
+</footer>
+
+<script>
+let activeTab = 'url';
+
+const MJ_STYLE = `editorial photomontage collage, duotone color treatment deep navy and electric blue, vintage archival photography cutouts layered over flat geometric color blocks circles and rectangles, halftone grain texture, mid-century aesthetic, hard cutout edges not soft blending, bold graphic composition, limited 2-3 color palette, high contrast, contemporary magazine editorial style --ar 16:9 --style raw --stylize 200`;
+
+const DE_STYLE_PREFIX = `Create an editorial photomontage collage in a retro-modern style. Duotone color treatment using deep navy (#18243a) and electric blue (#09a7e9). Vintage archival photography cutouts layered over flat geometric color blocks — overlapping circles and rectangles. Halftone grain texture throughout. Hard cutout edges, not soft blending. Mid-century magazine aesthetic. Limited 2-3 color palette, high contrast. 16:9 landscape format.`;
+
+const VARS = [
+  {
+    label: "Variation A — people-focused",
+    mj: "vintage black and white cutout figures of businesspeople or professionals as focal element, geometric blue circle behind them,",
+    de: "Include vintage black and white cutout figures of businesspeople as the focal element, with a bold geometric blue circle behind them."
+  },
+  {
+    label: "Variation B — symbolic / architectural",
+    mj: "symbolic objects and architecture no people, strong geometric color blocking, aerial or architectural photography fragment,",
+    de: "Focus on symbolic objects and architecture — no people. Strong geometric color blocking with aerial or architectural photography fragments."
+  },
+  {
+    label: "Variation C — bold & minimal",
+    mj: "minimal elements maximum impact, large flat color blocks dominate, single strong photographic detail,",
+    de: "Extremely minimal composition. Large flat color blocks dominate the frame. A single strong photographic detail as the only focal point. Maximum visual impact with minimum elements."
+  },
+];
+
+function switchTab(tab, el) {
+  activeTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-url').style.display = tab === 'url' ? 'block' : 'none';
+  document.getElementById('tab-body').style.display = tab === 'body' ? 'block' : 'none';
+}
+
+function updateCharCount() {
+  const len = document.getElementById('input-body').value.length;
+  const el = document.getElementById('char-count');
+  el.textContent = len.toLocaleString() + ' characters';
+  el.className = 'char-count' + (len > 8000 ? ' warn' : '');
+  if (len > 8000) el.textContent += ' — long articles will be trimmed to 6,000 characters';
+}
+
+function toggleKey() {
+  const input = document.getElementById('api-key');
+  const btn = document.getElementById('toggle-btn');
+  if (input.type === 'password') { input.type = 'text'; btn.textContent = 'hide'; }
+  else { input.type = 'password'; btn.textContent = 'show'; }
+}
+
+function getInput() {
+  if (activeTab === 'url') return document.getElementById('input-url').value.trim();
+  return document.getElementById('input-body').value.trim();
+}
+
+function buildContext() {
+  const raw = getInput();
+  if (!raw) return null;
+  if (activeTab === 'body') {
+    return `FULL ARTICLE BODY:\n${raw.slice(0, 6000)}`;
+  }
+  if (raw.includes('.com') || raw.includes('http')) {
+    try {
+      const clean = raw.includes('://') ? raw : 'https://' + raw;
+      const url = new URL(clean);
+      const slug = url.pathname.split('/').filter(Boolean).pop() || '';
+      const topic = slug.replace(/-/g, ' ').replace(/\d{4,}/g, '').trim();
+      if (topic.length > 4) return `URL: ${raw}\nURL slug topic: "${topic}"`;
+    } catch(e) {}
+  }
+  return `Headline: ${raw}`;
+}
+
+async function generate() {
+  const apiKey = document.getElementById('api-key').value.trim();
+  if (!apiKey) {
+    showError('Please enter your Anthropic API key above.');
+    return;
+  }
+  if (!apiKey.startsWith('sk-ant-')) {
+    showError('That doesn\'t look like a valid Anthropic API key. It should start with sk-ant-');
+    return;
+  }
+
+  const context = buildContext();
+  if (!context) {
+    showError('Please enter a URL, headline, or paste the article body first.');
+    return;
+  }
+
+  const target = document.getElementById('target').value;
+  const numVars = parseInt(document.getElementById('variations').value);
+  const btn = document.getElementById('gen-btn');
+  const resultsEl = document.getElementById('results');
+  const topicEl = document.getElementById('topic-area');
+
+  btn.disabled = true;
+  resultsEl.innerHTML = '<div class="loading"><div class="spinner"></div> Reading article and building prompts…</div>';
+  topicEl.style.display = 'none';
+  topicEl.innerHTML = '';
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1200,
+        messages: [{
+          role: 'user',
+          content: `You are an expert art director for NMP (National Mortgage Professional), a B2B financial news publication covering mortgages, housing, lending, interest rates, regulation, and the US economy.
+
+Input: ${context}
+
+Identify the core article topic in one sentence, then write ${numVars} visual subject description${numVars > 1 ? 's' : ''} (15-25 words each) that could represent this article as an editorial thumbnail. Each should describe a different visual approach — objects, scenes, or symbols that evoke the story. Think financial imagery: dollar bills, federal buildings, mortgage documents, housing developments, scales of justice, rate charts, handshakes, etc.
+
+Respond EXACTLY in this format, nothing else:
+TOPIC: [one sentence]
+---
+[subject 1]${numVars > 1 ? '\n[subject 2]' : ''}${numVars > 2 ? '\n[subject 3]' : ''}`
+        }]
+      })
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err?.error?.message || `API error ${resp.status}`);
+    }
+
+    const data = await resp.json();
+    const text = data.content?.find(b => b.type === 'text')?.text || '';
+    const topicMatch = text.match(/TOPIC:\s*(.+)/);
+    const subjects = (text.split('---')[1] || '').trim().split('\n').map(l => l.trim()).filter(l => l.length > 8).slice(0, numVars);
+
+    if (!subjects.length) throw new Error('Could not parse response — please try again.');
+
+    if (topicMatch) {
+      topicEl.innerHTML = `<div class="topic-pill"><div class="topic-dot"></div> ${esc(topicMatch[1].trim())}</div>`;
+      topicEl.style.display = 'block';
+    }
+
+    resultsEl.innerHTML = '';
+
+    subjects.forEach((subject, i) => {
+      const v = VARS[i] || VARS[0];
+
+      if (target === 'midjourney' || target === 'both') {
+        const mj = `/imagine prompt: ${subject}, ${v.mj} ${MJ_STYLE}`;
+        resultsEl.appendChild(makeCard(v.label, 'Midjourney', 'mj', mj, i * 0.06));
+      }
+
+      if (target === 'dalle' || target === 'both') {
+        const de = `${DE_STYLE_PREFIX} ${v.de} Subject to illustrate: ${subject}`;
+        resultsEl.appendChild(makeCard(v.label, 'DALL-E', 'de', de, (i * 0.06) + (target === 'both' ? 0.03 : 0)));
+      }
+    });
+
+  } catch(e) {
+    showError(e.message || 'Something went wrong. Check your API key and try again.');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function makeCard(label, platform, platformKey, promptText, delay) {
+  const card = document.createElement('div');
+  card.className = 'prompt-card';
+  card.style.animationDelay = delay + 's';
+
+  card.innerHTML = `
+    <div class="prompt-card-header">
+      <span>
+        <span class="prompt-variation">${esc(label)}</span>
+        <span class="prompt-platform platform-${platformKey}">${esc(platform)}</span>
+      </span>
+    </div>
+    <div class="prompt-body">${esc(promptText)}</div>
+    <div class="prompt-footer">
+      <button class="copy-btn" data-text="${esc(promptText).replace(/"/g, '&quot;')}" onclick="copyPrompt(this)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+        Copy prompt
+      </button>
+    </div>`;
+
+  return card;
+}
+
+function copyPrompt(btn) {
+  const text = btn.getAttribute('data-text').replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+  navigator.clipboard.writeText(text).then(() => {
+    btn.classList.add('copied');
+    btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Copied!`;
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copy prompt`;
+    }, 2500);
+  });
+}
+
+function showError(msg) {
+  document.getElementById('results').innerHTML = `<div class="error">${esc(msg)}</div>`;
+}
+
+function resetAll() {
+  document.getElementById('input-url').value = '';
+  document.getElementById('input-body').value = '';
+  document.getElementById('results').innerHTML = '';
+  document.getElementById('topic-area').style.display = 'none';
+  document.getElementById('char-count').textContent = '0 characters';
+  document.getElementById('char-count').className = 'char-count';
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
