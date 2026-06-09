@@ -99,6 +99,23 @@
   @keyframes spin { to { transform: rotate(360deg); } }
   .error { padding: 1rem 1.25rem; background: #fff5f5; border: 1px solid #fcc; border-radius: var(--radius); color: #c0392b; font-size: 13.5px; }
   .section-divider { border: none; border-top: 1px solid var(--border); margin: 1.25rem 0; }
+
+  /* Logo uploads */
+  .logo-upload-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .logo-slot { border: 1.5px dashed var(--border-strong); border-radius: var(--radius); background: #fff; position: relative; transition: all 0.15s; min-height: 90px; display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; }
+  .logo-slot:hover { border-color: var(--blue); background: rgba(9,167,233,0.03); }
+  .logo-slot.has-logo { border-style: solid; border-color: var(--navy); }
+  .logo-slot input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .logo-slot-empty { text-align: center; padding: 16px; pointer-events: none; }
+  .logo-slot-label { font-size: 12px; color: var(--text-muted); display: block; margin-top: 4px; }
+  .logo-preview-wrap { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px; width: 100%; pointer-events: none; }
+  .logo-preview-img { max-width: 100%; max-height: 56px; object-fit: contain; border-radius: 4px; }
+  .logo-remove { position: absolute; top: 5px; right: 5px; width: 20px; height: 20px; border-radius: 50%; background: var(--navy); color: #fff; border: none; cursor: pointer; font-size: 14px; line-height: 1; display: flex; align-items: center; justify-content: center; pointer-events: all; z-index: 2; opacity: 0.7; transition: opacity 0.15s; }
+  .logo-remove:hover { opacity: 1; }
+  .logo-status { font-size: 11px; font-family: var(--font-mono); display: flex; align-items: center; gap: 5px; margin-top: 6px; }
+  .logo-status.analyzing { color: var(--blue); }
+  .logo-status.analyzed { color: #0f7a4a; }
+  .logo-status.error { color: #c0392b; }
   .wm-drop-area { border: 2px dashed var(--border-strong); border-radius: var(--radius); padding: 2rem; text-align: center; cursor: pointer; transition: all 0.15s; background: #fff; position: relative; }
   .wm-drop-area:hover, .wm-drop-area.drag-over { border-color: var(--blue); background: rgba(9,167,233,0.03); }
   .wm-drop-text { font-size: 14px; color: var(--text-muted); }
@@ -254,6 +271,45 @@
   </div>
 
   <div id="topic-area" style="display:none; margin-bottom: 0.75rem;"></div>
+
+  <!-- Company Logo Upload -->
+  <div class="card">
+    <div class="card-title">Company Logos <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--text-muted);margin-left:6px;">optional — upload up to 2 logos to incorporate brand references into your prompts</span></div>
+    <div class="logo-upload-row">
+
+      <div class="logo-slot" id="logo-slot-1">
+        <input type="file" accept="image/*" onchange="handleLogoUpload(1, event)">
+        <div class="logo-slot-empty" id="logo-empty-1">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <span class="logo-slot-label">Company logo 1<br>PNG, JPG, SVG</span>
+        </div>
+        <div id="logo-preview-1" style="display:none; width:100%">
+          <div class="logo-preview-wrap">
+            <img class="logo-preview-img" id="logo-img-1">
+            <div id="logo-status-1"></div>
+          </div>
+          <button class="logo-remove" onclick="removeLogo(1, event)">×</button>
+        </div>
+      </div>
+
+      <div class="logo-slot" id="logo-slot-2">
+        <input type="file" accept="image/*" onchange="handleLogoUpload(2, event)">
+        <div class="logo-slot-empty" id="logo-empty-2">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <span class="logo-slot-label">Company logo 2<br>PNG, JPG, SVG</span>
+        </div>
+        <div id="logo-preview-2" style="display:none; width:100%">
+          <div class="logo-preview-wrap">
+            <img class="logo-preview-img" id="logo-img-2">
+            <div id="logo-status-2"></div>
+          </div>
+          <button class="logo-remove" onclick="removeLogo(2, event)">×</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   <div id="results"></div>
 
   <!-- Watermark Compositor -->
@@ -443,7 +499,7 @@ async function generate() {
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
         max_tokens: 1200,
-        messages: [{ role: 'user', content: 'You are an expert art director for NMP (National Mortgage Professional), a B2B financial news publication covering mortgages, housing, lending, interest rates, regulation, and the US economy.\n\nInput: ' + context + '\n\nIdentify the core article topic in one sentence, then write ' + numVars + ' visual subject description' + (numVars > 1 ? 's' : '') + ' (15-25 words each) for editorial thumbnail imagery. Each should describe a different visual concept — specific objects, scenes, or symbols that represent the article. Think: dollar bills, federal buildings, mortgage documents, housing developments, scales of justice, rate charts, handshakes, etc.\n\nRespond EXACTLY in this format, nothing else:\nTOPIC: [one sentence]\n---\n[subject 1]' + (numVars > 1 ? '\n[subject 2]' : '') + (numVars > 2 ? '\n[subject 3]' : '') }]
+        messages: [{ role: 'user', content: 'You are an expert art director for NMP (National Mortgage Professional), a B2B financial news publication covering mortgages, housing, lending, interest rates, regulation, and the US economy.\n\nInput: ' + context + buildLogoContext() + '\n\nIdentify the core article topic in one sentence, then write ' + numVars + ' visual subject description' + (numVars > 1 ? 's' : '') + ' (15-25 words each) for editorial thumbnail imagery. Each should describe a different visual concept — specific objects, scenes, or symbols that represent the article. Think: dollar bills, federal buildings, mortgage documents, housing developments, scales of justice, rate charts, handshakes, etc.' + (buildLogoContext() ? ' Where relevant, incorporate visual elements from the company logos described above.' : '') + '\n\nRespond EXACTLY in this format, nothing else:\nTOPIC: [one sentence]\n---\n[subject 1]' + (numVars > 1 ? '\n[subject 2]' : '') + (numVars > 2 ? '\n[subject 3]' : '') }]
       })
     });
 
@@ -556,7 +612,101 @@ function downloadWatermarked() {
   link.click();
 }
 
-// ─── Util ─────────────────────────────────────────────────────────────────────
+// ─── Logo uploads ─────────────────────────────────────────────────────────────
+
+const logoData = { 1: null, 2: null }; // { base64, mediaType, description }
+
+async function handleLogoUpload(n, event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const slot = document.getElementById('logo-slot-' + n);
+  const emptyEl = document.getElementById('logo-empty-' + n);
+  const previewEl = document.getElementById('logo-preview-' + n);
+  const imgEl = document.getElementById('logo-img-' + n);
+  const statusEl = document.getElementById('logo-status-' + n);
+
+  // Show preview immediately
+  const reader = new FileReader();
+  reader.onload = async function(e) {
+    const dataUrl = e.target.result;
+    imgEl.src = dataUrl;
+    emptyEl.style.display = 'none';
+    previewEl.style.display = 'block';
+    slot.classList.add('has-logo');
+    statusEl.innerHTML = '<span class="logo-status analyzing"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 0.65s linear infinite"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg> Analyzing logo…</span>';
+
+    // Extract base64 and media type
+    const base64 = dataUrl.split(',')[1];
+    const mediaType = file.type || 'image/png';
+
+    try {
+      // Use Claude vision to describe the logo's visual identity
+      const resp = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 300,
+          messages: [{
+            role: 'user',
+            content: [
+              {
+                type: 'image',
+                source: { type: 'base64', media_type: mediaType, data: base64 }
+              },
+              {
+                type: 'text',
+                text: 'This is a company logo. Describe it in 1-2 concise sentences for use in an image generation prompt. Focus on: the company name (read any text exactly), the primary colors, any icon or symbol shape, and the overall visual style (e.g. bold geometric, serif wordmark, abstract symbol). Be specific and factual. Output only the description, nothing else.'
+              }
+            ]
+          }]
+        })
+      });
+
+      if (!resp.ok) throw new Error('Analysis failed');
+      const data = await resp.json();
+      const description = data.content?.find(b => b.type === 'text')?.text?.trim() || '';
+
+      if (description) {
+        logoData[n] = { base64, mediaType, description };
+        statusEl.innerHTML = '<span class="logo-status analyzed"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> ' + esc(description.slice(0, 60)) + (description.length > 60 ? '…' : '') + '</span>';
+      } else {
+        throw new Error('No description returned');
+      }
+
+    } catch(err) {
+      // Still store without description — we can use filename as fallback
+      const fallbackName = file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ');
+      logoData[n] = { base64, mediaType, description: 'company logo for ' + fallbackName };
+      statusEl.innerHTML = '<span class="logo-status analyzed"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Logo loaded</span>';
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeLogo(n, event) {
+  event.stopPropagation();
+  event.preventDefault();
+  logoData[n] = null;
+  document.getElementById('logo-slot-' + n).classList.remove('has-logo');
+  document.getElementById('logo-empty-' + n).style.display = 'block';
+  document.getElementById('logo-preview-' + n).style.display = 'none';
+  document.getElementById('logo-status-' + n).innerHTML = '';
+  // Reset file input so same file can be re-uploaded
+  const slot = document.getElementById('logo-slot-' + n);
+  const input = slot.querySelector('input[type=file]');
+  if (input) input.value = '';
+}
+
+function buildLogoContext() {
+  const logos = [logoData[1], logoData[2]].filter(Boolean);
+  if (!logos.length) return '';
+  const parts = logos.map((l, i) => 'Company ' + (i + 1) + ': ' + l.description);
+  return '\n\nCompany logos to reference in the image:\n' + parts.join('\n') + '\nIncorporate visual references to these companies\' brand identity — their colors, name typography, or symbolic elements — as part of the composition.';
+}
+
+
 
 function showError(msg) { document.getElementById('results').innerHTML = '<div class="error">' + esc(msg) + '</div>'; }
 
@@ -567,6 +717,7 @@ function resetAll() {
   document.getElementById('topic-area').style.display = 'none';
   document.getElementById('char-count').textContent = '0 characters';
   document.getElementById('char-count').className = 'char-count';
+  [1, 2].forEach(n => removeLogo(n, { stopPropagation: () => {}, preventDefault: () => {} }));
 }
 
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
