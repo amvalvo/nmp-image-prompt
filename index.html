@@ -94,6 +94,23 @@
   .copy-btn { font-family: var(--font-sans); font-size: 12px; padding: 5px 14px; border-radius: 6px; border: 1px solid var(--border-strong); background: #fff; color: var(--text-secondary); cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: all 0.15s; }
   .copy-btn:hover { background: var(--navy); color: #fff; border-color: var(--navy); }
   .copy-btn.copied { background: #0f7a4a; color: #fff; border-color: #0f7a4a; }
+
+  /* Social follow-up prompts */
+  .social-toggle { width: 100%; background: rgba(9,167,233,0.04); border: none; border-top: 1px solid var(--border); padding: 9px 16px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; font-family: var(--font-sans); font-size: 12px; color: var(--text-secondary); transition: background 0.15s; }
+  .social-toggle:hover { background: rgba(9,167,233,0.08); color: var(--text-primary); }
+  .social-toggle svg { transition: transform 0.2s; flex-shrink: 0; }
+  .social-toggle.open svg { transform: rotate(180deg); }
+  .social-toggle-label { display: flex; align-items: center; gap: 7px; }
+  .social-panel { display: none; border-top: 1px solid var(--border); background: rgba(9,167,233,0.02); }
+  .social-panel.open { display: block; }
+  .social-panel-inner { padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
+  .social-format { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .social-format-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: rgba(24,36,58,0.02); border-bottom: 1px solid var(--border); }
+  .social-format-name { font-size: 11px; font-family: var(--font-mono); font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-secondary); display: flex; align-items: center; gap: 6px; }
+  .social-ratio-badge { font-size: 10px; font-family: var(--font-mono); background: rgba(24,36,58,0.07); color: var(--text-muted); padding: 1px 6px; border-radius: 3px; }
+  .social-prompt-text { padding: 10px 12px; font-family: var(--font-mono); font-size: 12px; line-height: 1.65; color: var(--text-primary); white-space: pre-wrap; word-break: break-word; }
+  .social-format-footer { padding: 7px 12px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; }
+  .social-note { font-size: 11.5px; color: var(--text-muted); font-family: var(--font-mono); padding: 8px 12px; background: rgba(24,36,58,0.03); border-radius: var(--radius); line-height: 1.5; }
   .loading { display: flex; align-items: center; gap: 12px; padding: 1.5rem; color: var(--text-secondary); font-size: 14px; }
   .spinner { width: 18px; height: 18px; border: 2px solid var(--border-strong); border-top-color: var(--blue); border-radius: 50%; animation: spin 0.65s linear infinite; flex-shrink: 0; }
   @keyframes spin { to { transform: rotate(360deg); } }
@@ -241,40 +258,7 @@
     </div>
 
     <hr class="section-divider">
-
-    <div class="options-row">
-      <div class="field">
-        <label for="target">Generate for</label>
-        <select id="target">
-          <option value="dalle" selected>ChatGPT / DALL-E</option>
-          <option value="midjourney">Midjourney</option>
-          <option value="both">Both</option>
-        </select>
-      </div>
-      <div class="field">
-        <label for="variations">Variations</label>
-        <select id="variations">
-          <option value="3">3 variations</option>
-          <option value="2">2 variations</option>
-          <option value="1">1 variation</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="actions">
-      <button class="btn btn-primary" id="gen-btn" onclick="generate()">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5z"/><path d="M19 15l.75 2.25L22 18l-2.25.75L19 21l-.75-2.25L16 18l2.25-.75z"/></svg>
-        Generate prompts
-      </button>
-      <button class="btn btn-ghost" onclick="resetAll()">Clear</button>
-    </div>
-  </div>
-
-  <div id="topic-area" style="display:none; margin-bottom: 0.75rem;"></div>
-
-  <!-- Company Logo Upload -->
-  <div class="card">
-    <div class="card-title">Company Logos <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--text-muted);margin-left:6px;">optional — upload up to 2 logos to incorporate brand references into your prompts</span></div>
+    <div class="card-title" style="margin-bottom:0.75rem">Company Logos <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--text-muted);margin-left:6px;">optional</span></div>
     <div class="logo-upload-row">
 
       <div class="logo-slot" id="logo-slot-1">
@@ -308,12 +292,49 @@
       </div>
 
     </div>
+
+    <hr class="section-divider">
+
+    <div class="options-row">
+      <div class="field">
+        <label for="target">Generate for</label>
+        <select id="target">
+          <option value="dalle" selected>ChatGPT / DALL-E</option>
+          <option value="midjourney">Midjourney</option>
+          <option value="both">Both</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="variations">Variations</label>
+        <select id="variations">
+          <option value="3">3 variations</option>
+          <option value="2">2 variations</option>
+          <option value="1">1 variation</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-primary" id="gen-btn" onclick="generate()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5z"/><path d="M19 15l.75 2.25L22 18l-2.25.75L19 21l-.75-2.25L16 18l2.25-.75z"/></svg>
+        Generate prompts
+      </button>
+      <button class="btn btn-ghost" onclick="resetAll()">Clear</button>
+    </div>
   </div>
 
+  <div id="topic-area" style="display:none; margin-bottom: 0.75rem;"></div>
   <div id="results"></div>
 
+  <!-- Divider message -->
+  <div id="watermark-divider" style="display:flex; align-items:center; gap:1rem; margin: 1.75rem 0;">
+    <div style="flex:1; height:1px; background:var(--border)"></div>
+    <div style="font-size:13px; color:var(--text-muted); font-family:var(--font-mono); white-space:nowrap;">↑ Copy a prompt, generate your image, then return here to add the watermark ↓</div>
+    <div style="flex:1; height:1px; background:var(--border)"></div>
+  </div>
+
   <!-- Watermark Compositor -->
-  <div class="card" style="margin-top:1.25rem">
+  <div class="card">
     <div class="card-title">Add NMP Watermark to Your Image</div>
     <div class="wm-drop-area" id="wm-drop" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
       <input type="file" class="wm-drop-input" id="wm-file-input" accept="image/*" onchange="handleFileSelect(event)">
@@ -524,7 +545,7 @@ async function generate() {
     subjects.forEach((subject, i) => {
       const v = VARS[i] || VARS[0];
       if (target === 'midjourney' || target === 'both')
-        resultsEl.appendChild(makeCard(v.label, 'Midjourney', 'mj', '/imagine prompt: ' + subject + ', ' + v.mj + ' ' + style.mj, i * 0.06));
+        resultsEl.appendChild(makeCard(v.label, 'Midjourney', 'mj', subject + ', ' + v.mj + ' ' + style.mj, i * 0.06));
       if (target === 'dalle' || target === 'both')
         resultsEl.appendChild(makeCard(v.label, 'DALL-E', 'de', style.de + ' ' + v.de + ' Subject: ' + subject, (i * 0.06) + (target === 'both' ? 0.03 : 0)));
     });
@@ -538,14 +559,76 @@ async function generate() {
 
 // ─── Cards ────────────────────────────────────────────────────────────────────
 
+const SOCIAL_FORMATS = [
+  { id: 'linkedin', name: 'LinkedIn / Facebook', ratio: '1.91:1', platforms: 'LinkedIn feed, Facebook link preview',
+    mjSuffix: '--ar 1.91:1',
+    de: 'Recompose this image for LinkedIn and Facebook (1.91:1 landscape format). Maintain the identical subject, style, colors, and mood. Keep the focal element centered and ensure nothing important is cropped from top or bottom.' },
+  { id: 'square', name: 'Instagram Square', ratio: '1:1', platforms: 'Instagram feed, Facebook feed',
+    mjSuffix: '--ar 1:1',
+    de: 'Recompose this image as a square (1:1 format) for Instagram and Facebook feed. Maintain the identical subject, style, colors, and mood. Center the focal element so nothing important is cropped on either side.' },
+  { id: 'portrait', name: 'Instagram Portrait', ratio: '4:5', platforms: 'Instagram feed (optimal)',
+    mjSuffix: '--ar 4:5',
+    de: 'Recompose this image as a vertical portrait (4:5 format) for Instagram feed. Maintain the identical subject, style, colors, and mood. Center the focal element vertically, extending background elements to fill the taller frame.' },
+];
+
+function buildSocialPrompts(platform, originalPrompt) {
+  const isMj = platform === 'mj';
+  return SOCIAL_FORMATS.map(fmt => {
+    let prompt;
+    if (isMj) {
+      // For MJ: strip existing --ar flag and replace with social ratio
+      const base = originalPrompt.replace(/--ar\s+[\d.:]+/g, '').trim();
+      prompt = base + ' ' + fmt.mjSuffix;
+    } else {
+      // For DALL-E: prepend the recompose instruction
+      prompt = fmt.de + '\n\nOriginal prompt for reference:\n' + originalPrompt;
+    }
+    return { ...fmt, prompt };
+  });
+}
+
+function toggleSocial(btn) {
+  btn.classList.toggle('open');
+  const panel = btn.nextElementSibling;
+  panel.classList.toggle('open');
+}
+
 function makeCard(label, platform, platformKey, promptText, delay) {
   const card = document.createElement('div');
   card.className = 'prompt-card';
   card.style.animationDelay = delay + 's';
+
+  const socialFormats = buildSocialPrompts(platformKey, promptText);
+  const socialHTML = socialFormats.map(fmt => {
+    const escaped = esc(fmt.prompt).replace(/"/g, '&quot;');
+    return '<div class="social-format">' +
+      '<div class="social-format-header">' +
+        '<span class="social-format-name">' +
+          '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>' +
+          esc(fmt.name) +
+          '<span class="social-ratio-badge">' + esc(fmt.ratio) + '</span>' +
+        '</span>' +
+      '</div>' +
+      '<div class="social-prompt-text">' + esc(fmt.prompt) + '</div>' +
+      '<div class="social-format-footer"><button class="copy-btn" data-text="' + escaped + '" onclick="copyPrompt(this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Copy</button></div>' +
+      '</div>';
+  }).join('');
+
   card.innerHTML =
     '<div class="prompt-card-header"><span><span class="prompt-variation">' + esc(label) + '</span><span class="prompt-platform platform-' + platformKey + '">' + esc(platform) + '</span></span></div>' +
     '<div class="prompt-body">' + esc(promptText) + '</div>' +
-    '<div class="prompt-footer"><button class="copy-btn" data-text="' + esc(promptText).replace(/"/g,'&quot;') + '" onclick="copyPrompt(this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Copy prompt</button></div>';
+    '<div class="prompt-footer"><button class="copy-btn" data-text="' + esc(promptText).replace(/"/g,'&quot;') + '" onclick="copyPrompt(this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Copy prompt</button></div>' +
+    '<button class="social-toggle" onclick="toggleSocial(this)">' +
+      '<span class="social-toggle-label"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg> Social media resize prompts — use after generating your image</span>' +
+      '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>' +
+    '</button>' +
+    '<div class="social-panel">' +
+      '<div class="social-panel-inner">' +
+        '<div class="social-note">💡 Found an image you like? Copy one of these follow-up prompts and paste it into ' + esc(platform) + ' along with your generated image to get the same composition in the right size for each platform.</div>' +
+        socialHTML +
+      '</div>' +
+    '</div>';
+
   return card;
 }
 
