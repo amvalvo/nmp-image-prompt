@@ -4,6 +4,7 @@ import { useRouter } from 'next/router'
 import Head from 'next/head'
 
 export default function Home() {
+  const [mounted, setMounted] = useState(false)
   const [session, setSession] = useState(null)
   const [status, setStatus] = useState("loading")
 
@@ -19,7 +20,9 @@ export default function Home() {
     if (status === 'unauthenticated') router.push('/login')
   }, [status, router])
 
-  if (status === 'loading' || !session) return null
+  useEffect(() => { setMounted(true) }, [])
+
+  if (!mounted || status === "loading" || !session) return null
 
   return (
     <>
@@ -177,7 +180,7 @@ export default function Home() {
           <div className="header-badge">IMAGE PROMPT TOOL</div>
         </div>
         <div className="header-right">
-          <span className="user-email">{session.user?.email}</span>
+          <span className="user-email">{session?.user?.email}</span>
           <button className="signout-btn" onClick={() => window.location.href='/api/auth/logout'}>Sign out</button>
         </div>
       </header>
@@ -189,14 +192,14 @@ export default function Home() {
         <div className="card">
           <div className="card-title">Article Input</div>
           <div className="tabs">
-            <button className="tab active" onClick={(e) => switchTab('url', e.target)}>URL or headline</button>
-            <button className="tab" onClick={(e) => switchTab('body', e.target)}>Full article body</button>
+            <button className="tab active" onClick={(e) => window.switchTab('url', e.target)}>URL or headline</button>
+            <button className="tab" onClick={(e) => window.switchTab('body', e.target)}>Full article body</button>
           </div>
           <div id="tab-url">
             <textarea id="input-url" rows="3" placeholder="Paste a nationalmortgageprofessional.com URL or article headline" />
           </div>
           <div id="tab-body" style={{display:'none'}}>
-            <textarea id="input-body" rows="12" placeholder="Paste the full article text here…" onInput={updateCharCount} />
+            <textarea id="input-body" rows="12" placeholder="Paste the full article text here…" onInput={() => window.updateCharCount()} />
             <div className="char-count" id="char-count">0 characters</div>
           </div>
         </div>
@@ -204,15 +207,15 @@ export default function Home() {
         <div className="card">
           <div className="card-title">Visual Style</div>
           <div className="style-grid">
-            <div className="style-option active" data-style="editorial" onClick={(e) => selectStyle('editorial', e.currentTarget)}>
+            <div className="style-option active" data-style="editorial" onClick={(e) => window.selectStyle('editorial', e.currentTarget)}>
               <div className="style-option-name"><span className="style-dot" style={{background:'#09a7e9'}}></span>Editorial Collage</div>
               <div className="style-option-desc">Duotone photomontage with geometric blocks and halftone grain. The NMP signature look.</div>
             </div>
-            <div className="style-option" data-style="engraving" onClick={(e) => selectStyle('engraving', e.currentTarget)}>
+            <div className="style-option" data-style="engraving" onClick={(e) => window.selectStyle('engraving', e.currentTarget)}>
               <div className="style-option-name"><span className="style-dot" style={{background:'#2e4164'}}></span>Currency Engraving</div>
               <div className="style-option-desc">Fine-line intaglio crosshatching reminiscent of US banknotes and 19th century illustration.</div>
             </div>
-            <div className="style-option" data-style="documentary" onClick={(e) => selectStyle('documentary', e.currentTarget)}>
+            <div className="style-option" data-style="documentary" onClick={(e) => window.selectStyle('documentary', e.currentTarget)}>
               <div className="style-option-name"><span className="style-dot" style={{background:'#18243a'}}></span>Documentary</div>
               <div className="style-option-desc">High-contrast editorial photography. Journalistic, monochromatic, heavy and real.</div>
             </div>
@@ -221,7 +224,7 @@ export default function Home() {
           <hr className="section-divider" />
           <div className="card-title" style={{marginBottom:'0.75rem'}}>Color Palette</div>
           <div className="palette-grid">
-            <div className="style-option active" data-palette="blues" onClick={(e) => selectPalette('blues', e.currentTarget)}>
+            <div className="style-option active" data-palette="blues" onClick={(e) => window.selectPalette('blues', e.currentTarget)}>
               <div className="palette-swatches">
                 <div className="swatch" style={{background:'#18243a'}}></div>
                 <div className="swatch" style={{background:'#09a7e9'}}></div>
@@ -230,7 +233,7 @@ export default function Home() {
               <div className="style-option-name" style={{fontSize:'12px'}}>Navy Blues</div>
               <div className="style-option-desc">Deep navy + electric blue. The NMP standard.</div>
             </div>
-            <div className="style-option" data-palette="greens" onClick={(e) => selectPalette('greens', e.currentTarget)}>
+            <div className="style-option" data-palette="greens" onClick={(e) => window.selectPalette('greens', e.currentTarget)}>
               <div className="palette-swatches">
                 <div className="swatch" style={{background:'#18243a'}}></div>
                 <div className="swatch" style={{background:'#6abf8a'}}></div>
@@ -239,7 +242,7 @@ export default function Home() {
               <div className="style-option-name" style={{fontSize:'12px'}}>Brand Greens</div>
               <div className="style-option-desc">Navy base with sage and mint greens from the brand kit.</div>
             </div>
-            <div className="style-option" data-palette="bluegreen" onClick={(e) => selectPalette('bluegreen', e.currentTarget)}>
+            <div className="style-option" data-palette="bluegreen" onClick={(e) => window.selectPalette('bluegreen', e.currentTarget)}>
               <div className="palette-swatches">
                 <div className="swatch" style={{background:'#18243a'}}></div>
                 <div className="swatch" style={{background:'#09a7e9'}}></div>
@@ -248,7 +251,7 @@ export default function Home() {
               <div className="style-option-name" style={{fontSize:'12px'}}>Blue + Green</div>
               <div className="style-option-desc">Electric blue dominant with limited green accents.</div>
             </div>
-            <div className="style-option" data-palette="custom" onClick={(e) => selectPalette('custom', e.currentTarget)}>
+            <div className="style-option" data-palette="custom" onClick={(e) => window.selectPalette('custom', e.currentTarget)}>
               <div className="palette-swatches">
                 <div className="swatch" id="custom-swatch-1" style={{background:'#cccccc'}}></div>
                 <div className="swatch" id="custom-swatch-2" style={{background:'#eeeeee'}}></div>
@@ -263,12 +266,12 @@ export default function Home() {
               <span className="hex-label">Color 1</span>
               <div className="hex-input-wrap">
                 <div className="hex-preview" id="preview-1"></div>
-                <input type="text" className="hex-input" id="hex-1" placeholder="#18243a" maxLength="7" onInput={() => updateHexPreview(1)} />
+                <input type="text" className="hex-input" id="hex-1" placeholder="#18243a" maxLength="7" onInput={() => window.updateHexPreview(1)} />
               </div>
               <span className="hex-label" style={{marginLeft:'8px'}}>Color 2 (optional)</span>
               <div className="hex-input-wrap">
                 <div className="hex-preview" id="preview-2"></div>
-                <input type="text" className="hex-input" id="hex-2" placeholder="#09a7e9" maxLength="7" onInput={() => updateHexPreview(2)} />
+                <input type="text" className="hex-input" id="hex-2" placeholder="#09a7e9" maxLength="7" onInput={() => window.updateHexPreview(2)} />
               </div>
             </div>
           </div>
@@ -277,7 +280,7 @@ export default function Home() {
           <div className="card-title" style={{marginBottom:'0.75rem'}}>Company Logos <span style={{fontWeight:'400',textTransform:'none',letterSpacing:0,fontSize:'11px',color:'var(--text-muted)',marginLeft:'6px'}}>optional</span></div>
           <div className="logo-upload-row">
             <div className="logo-slot" id="logo-slot-1">
-              <input type="file" accept="image/*" onChange={(e) => handleLogoUpload(1, e)} />
+              <input type="file" accept="image/*" onChange={(e) => window.handleLogoUpload(1, e)} />
               <div className="logo-slot-empty" id="logo-empty-1">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                 <span className="logo-slot-label">Company logo 1<br/>PNG, JPG, SVG</span>
@@ -291,7 +294,7 @@ export default function Home() {
               </div>
             </div>
             <div className="logo-slot" id="logo-slot-2">
-              <input type="file" accept="image/*" onChange={(e) => handleLogoUpload(2, e)} />
+              <input type="file" accept="image/*" onChange={(e) => window.handleLogoUpload(2, e)} />
               <div className="logo-slot-empty" id="logo-empty-2">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                 <span className="logo-slot-label">Company logo 2<br/>PNG, JPG, SVG</span>
@@ -326,11 +329,11 @@ export default function Home() {
             </div>
           </div>
           <div className="actions">
-            <button className="btn btn-primary" id="gen-btn" onClick={generate}>
+            <button className="btn btn-primary" id="gen-btn" onClick={() => window.generate()}>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5z"/><path d="M19 15l.75 2.25L22 18l-2.25.75L19 21l-.75-2.25L16 18l2.25-.75z"/></svg>
               Generate prompts
             </button>
-            <button className="btn btn-ghost" onClick={resetAll}>Clear</button>
+            <button className="btn btn-ghost" onClick={() => window.resetAll()}>Clear</button>
           </div>
         </div>
 
@@ -346,10 +349,10 @@ export default function Home() {
         <div className="card">
           <div className="card-title">Add NMP Watermark to Your Image</div>
           <div className="wm-drop-area" id="wm-drop"
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}>
-            <input type="file" className="wm-drop-input" id="wm-file-input" accept="image/*" onChange={handleFileSelect} />
+            onDragOver={(e) => window.handleDragOver(e)}
+            onDragLeave={() => window.handleDragLeave()}
+            onDrop={(e) => window.handleDrop(e)}>
+            <input type="file" className="wm-drop-input" id="wm-file-input" accept="image/*" onChange={(e) => window.handleFileSelect(e)} />
             <div className="wm-drop-text"><strong>Drop your generated image here</strong><br/>or click to browse — PNG, JPG, WEBP supported</div>
           </div>
           <div id="wm-output" style={{display:'none', marginTop:'1rem'}}>
@@ -358,9 +361,9 @@ export default function Home() {
             </div>
             <div className="wm-controls">
               <span className="wm-opacity-label">Watermark opacity</span>
-              <input type="range" id="wm-opacity" min="5" max="100" defaultValue="35" onInput={redrawWatermark} />
+              <input type="range" id="wm-opacity" min="5" max="100" defaultValue="35" onInput={() => window.redrawWatermark()} />
               <span id="wm-opacity-val" style={{fontSize:'12px',fontFamily:'var(--font-mono)',color:'var(--text-muted)'}}>35%</span>
-              <button className="btn btn-primary" style={{marginLeft:'auto'}} onClick={downloadWatermarked}>
+              <button className="btn btn-primary" style={{marginLeft:'auto'}} onClick={() => window.downloadWatermarked()}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 Download watermarked image
               </button>
@@ -634,6 +637,25 @@ export default function Home() {
           [1,2].forEach(n => { logoData[n] = null; document.getElementById('logo-slot-' + n).classList.remove('has-logo'); document.getElementById('logo-empty-' + n).style.display = 'block'; document.getElementById('logo-preview-' + n).style.display = 'none'; });
         }
         function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+        // Expose functions to window so React JSX handlers can call them
+        window.switchTab = switchTab;
+        window.selectStyle = selectStyle;
+        window.selectPalette = selectPalette;
+        window.updateCharCount = updateCharCount;
+        window.updateHexPreview = updateHexPreview;
+        window.handleLogoUpload = handleLogoUpload;
+        window.removeLogo = removeLogo;
+        window.generate = generate;
+        window.resetAll = resetAll;
+        window.handleDragOver = handleDragOver;
+        window.handleDragLeave = handleDragLeave;
+        window.handleDrop = handleDrop;
+        window.handleFileSelect = handleFileSelect;
+        window.redrawWatermark = redrawWatermark;
+        window.downloadWatermarked = downloadWatermarked;
+        window.copyPrompt = copyPrompt;
+        window.toggleSocial = toggleSocial;
       `}} />
     </>
   )
