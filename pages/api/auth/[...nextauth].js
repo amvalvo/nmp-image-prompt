@@ -1,7 +1,7 @@
-import NextAuth from 'next-auth'
-import GoogleProvider from 'next-auth/providers/google'
+const NextAuth = require('next-auth').default
+const GoogleProvider = require('next-auth/providers/google').default
 
-export const authOptions = {
+const authOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID,
@@ -12,7 +12,7 @@ export const authOptions = {
     async signIn({ profile }) {
       return profile?.email?.endsWith('@ambizmedia.com') ?? false
     },
-    async session({ session, token }) {
+    async session({ session }) {
       return session
     },
   },
@@ -20,6 +20,8 @@ export const authOptions = {
     signIn: '/login',
     error: '/login',
   },
+  secret: process.env.NEXTAUTH_SECRET,
 }
 
-export default NextAuth(authOptions)
+module.exports = NextAuth(authOptions)
+module.exports.authOptions = authOptions
