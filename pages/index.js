@@ -1,10 +1,18 @@
-import { useSession, signOut } from 'next-auth/react'
+import { useState, useEffect } from "react"
 import { useRouter } from 'next/router'
-import { useEffect } from 'react'
+
 import Head from 'next/head'
 
 export default function Home() {
-  const { data: session, status } = useSession()
+  const [session, setSession] = useState(null)
+  const [status, setStatus] = useState("loading")
+
+  useEffect(() => {
+    fetch("/api/auth/session").then(r => r.json()).then(d => {
+      setSession(d.user ? { user: d.user } : null)
+      setStatus(d.user ? "authenticated" : "unauthenticated")
+    }).catch(() => setStatus("unauthenticated"))
+  }, [])
   const router = useRouter()
 
   useEffect(() => {
@@ -170,7 +178,7 @@ export default function Home() {
         </div>
         <div className="header-right">
           <span className="user-email">{session.user?.email}</span>
-          <button className="signout-btn" onClick={() => signOut({ callbackUrl: '/login' })}>Sign out</button>
+          <button className="signout-btn" onClick={() => window.location.href='/api/auth/logout'}>Sign out</button>
         </div>
       </header>
 
