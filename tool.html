@@ -397,23 +397,23 @@ function buildStyleStrings(paletteMj, paletteDe) {
   return {
     editorial: {
       mj: 'editorial photomontage collage, duotone color treatment ' + paletteMj + ', vintage archival photography cutouts layered over flat geometric color blocks circles and rectangles, halftone grain texture, mid-century aesthetic, hard cutout edges not soft blending, bold graphic composition, limited 2-3 color palette, high contrast, contemporary magazine editorial style --ar 16:9 --style raw --stylize 200',
-      de: 'Create an editorial photomontage collage in a retro-modern style, ' + paletteDe + '. Vintage archival photography cutouts layered over flat geometric color blocks — overlapping circles and rectangles. Halftone grain texture throughout. Hard cutout edges, not soft blending. Mid-century magazine aesthetic. High contrast. 16:9 landscape format.'
+      de: 'Create an editorial photomontage collage in a retro-modern style, ' + paletteDe + '. Vintage archival photography cutouts layered over flat geometric color blocks — overlapping circles and rectangles. Halftone grain texture throughout. Hard cutout edges, not soft blending. Mid-century magazine aesthetic. High contrast. 16:9 landscape format. IMPORTANT: No text, words, letters, labels, captions, headlines, slogans, or typography of any kind anywhere in the image. Maximum 3 visual elements total. Bold and graphic — let the imagery speak without words.'
     },
     engraving: {
       mj: 'fine-line intaglio engraving style, highly detailed crosshatching and stippling, reminiscent of classical currency and banknote printing, intricate texture built entirely from dense parallel and intersecting lines, no flat fills or gradients, deep contrast through line density alone, 19th century engraved portraiture and architectural illustration, ' + paletteMj + ' ink on cream paper --ar 16:9 --style raw --stylize 150',
-      de: 'Fine-line intaglio engraving style, highly detailed crosshatching and stippling, reminiscent of classical currency and banknote printing. Intricate texture built entirely from dense parallel and intersecting lines — no flat fills or gradients. Deep contrast through line density alone. 19th century engraved portraiture precision, ' + paletteDe + ', on warm cream background. 16:9 landscape format.'
+      de: 'Fine-line intaglio engraving style, highly detailed crosshatching and stippling, reminiscent of classical currency and banknote printing. Intricate texture built entirely from dense parallel and intersecting lines — no flat fills or gradients. Deep contrast through line density alone. 19th century engraved portraiture precision, ' + paletteDe + ', on warm cream background. 16:9 landscape format. IMPORTANT: No text, words, letters, labels, captions, headlines, or typography of any kind. Simple bold composition with maximum 2-3 elements.'
     },
     documentary: {
       mj: 'high-contrast editorial photography style, realistic and unembellished, documentary and journalistic in tone, sharp detail with deep shadows, American residential real estate and housing subjects, suburban neighborhoods single-family homes government buildings everyday homeowners, straightforward framing conveying weight and consequence, ' + paletteMj + ', monochromatic or desaturated treatment, natural light, no studio polish --ar 16:9 --style raw --stylize 50',
-      de: 'High-contrast editorial photography style, realistic and unembellished, documentary and journalistic in tone. Sharp detail with deep shadows. American residential real estate subjects — suburban neighborhoods, single-family homes, government buildings, homeowners. Straightforward framing conveying weight and consequence, ' + paletteDe + '. Monochromatic or desaturated. Natural light, no studio polish. 16:9 landscape format.'
+      de: 'High-contrast editorial photography style, realistic and unembellished, documentary and journalistic in tone. Sharp detail with deep shadows. American residential real estate subjects — suburban neighborhoods, single-family homes, government buildings, homeowners. Straightforward framing conveying weight and consequence, ' + paletteDe + '. Monochromatic or desaturated. Natural light, no studio polish. 16:9 landscape format. IMPORTANT: No text, words, letters, signs, labels, or typography visible anywhere. Single strong image, nothing extraneous.'
     }
   };
 }
 
 const VARS = [
-  { label: 'Variation A — people-focused', mj: 'cutout figures of businesspeople or professionals as focal element, geometric circle behind them,', de: 'Include people as the focal element — professionals, homeowners, or businesspeople — with bold geometric shapes behind them.' },
-  { label: 'Variation B — symbolic / architectural', mj: 'symbolic objects and architecture no people, strong geometric color blocking, architectural photography fragment,', de: 'Focus on symbolic objects and architecture — no people. Strong geometric blocking with architectural or aerial photography fragments.' },
-  { label: 'Variation C — bold & minimal', mj: 'minimal elements maximum impact, large flat color blocks dominate, single strong photographic detail,', de: 'Extremely minimal composition. A single strong visual detail as the focal point. Maximum impact with minimum elements.' },
+  { label: 'Variation A — people-focused', mj: 'cutout figures of businesspeople or professionals as focal element, geometric circle behind them,', de: 'One or two people maximum as the focal element, with a single bold geometric shape behind them. Nothing else. Clean background.' },
+  { label: 'Variation B — symbolic / architectural', mj: 'symbolic objects and architecture no people, strong geometric color blocking, architectural photography fragment,', de: 'One single symbolic object or architectural image as the sole focal point. One or two flat geometric color blocks as background. Nothing else in the frame.' },
+  { label: 'Variation C — bold & minimal', mj: 'minimal elements maximum impact, large flat color blocks dominate, single strong photographic detail,', de: 'Absolute minimum: one image, one or two color blocks, nothing else. No decorative elements, no secondary imagery, no text, no icons. Pure bold simplicity.' },
 ];
 
 // ─── UI helpers ───────────────────────────────────────────────────────────────
@@ -515,6 +515,7 @@ async function generate() {
 
   try {
     const resp = await fetch('/api/generate', {
+      credentials: 'include',
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -726,6 +727,7 @@ async function handleLogoUpload(n, event) {
     try {
       // Use Claude vision to describe the logo's visual identity
       const resp = await fetch('/api/generate', {
+      credentials: 'include',
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
