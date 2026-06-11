@@ -1,0 +1,50 @@
+// Read tool HTML at module load time
+import { readFileSync } from 'fs'
+import { join } from 'path'
+
+const LOGIN_HTML = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>NMP Image Prompt Tool</title><link href="https://fonts.googleapis.com/css2?family=DM+Mono&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"><style>*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:'DM Sans',sans-serif;background:#f5f4f0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem}.card{background:#fafaf8;border:1px solid rgba(24,36,58,0.12);border-radius:16px;padding:2.5rem 2rem;width:100%;max-width:380px;text-align:center}.logo{font-size:28px;font-weight:500;color:#18243a;letter-spacing:-0.02em;margin-bottom:.25rem}.logo span{color:#3abff8}.tool-name{font-size:12px;font-family:'DM Mono',monospace;color:#9aa0ad;letter-spacing:.08em;text-transform:uppercase;margin-bottom:2rem}.divider{border:none;border-top:1px solid rgba(24,36,58,0.1);margin:0 0 2rem}.btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:11px 20px;background:#18243a;color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:14px;font-weight:500;cursor:pointer;text-decoration:none;transition:background .15s}.btn:hover{background:#1e2d48}.note{font-size:12px;color:#9aa0ad;margin-top:1rem;line-height:1.5}.error-msg{font-size:13px;color:#c0392b;background:#fff5f5;border:1px solid #fcc;border-radius:8px;padding:10px 14px;margin-bottom:1.25rem}</style></head><body><div class="card"><div class="logo">nmp<span>.</span></div><div class="tool-name">Image Prompt Tool</div><hr class="divider">__ERROR__<a class="btn" href="/auth/login"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>Sign in with Google</a><p class="note">Access restricted to @ambizmedia.com accounts.</p></div></body></html>`
+
+let TOOL_HTML = ''
+try {
+  TOOL_HTML = readFileSync(join(process.cwd(), 'tool.html'), 'utf8')
+} catch(e) {
+  TOOL_HTML = '<h1>Tool not found</h1>'
+}
+
+function getSession(req) {
+  const cookie = req.cookies?.nmp_session
+  if (!cookie) return null
+  try {
+    const session = JSON.parse(Buffer.from(cookie, 'base64').toString())
+    if (session.exp < Date.now()) return null
+    return session
+  } catch {
+    return null
+  }
+}
+
+export default function handler(req, res) {
+  const session = getSession(req)
+  
+  if (!session) {
+    const error = req.query.error
+    let errorHtml = ''
+    if (error === 'AccessDenied') {
+      errorHtml = '<div class="error-msg">Access restricted to @ambizmedia.com accounts.</div>'
+    } else if (error) {
+      errorHtml = '<div class="error-msg">Something went wrong. Please try again.</div>'
+    }
+    const html = LOGIN_HTML.replace('__ERROR__', errorHtml)
+    res.setHeader('Content-Type', 'text/html')
+    return res.status(200).send(html)
+  }
+
+  // Inject user email and signout into tool HTML
+  const toolWithUser = TOOL_HTML.replace(
+    '<div class="header-badge">IMAGE PROMPT TOOL</div>',
+    `<div class="header-badge">IMAGE PROMPT TOOL</div></div><div class="header-right"><span class="user-email" style="font-size:12px;font-family:monospace;color:rgba(255,255,255,0.5);margin-right:8px">${session.email}</span><a href="/auth/logout" style="font-size:12px;color:rgba(255,255,255,0.6);background:transparent;border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:4px 12px;text-decoration:none">Sign out</a><div style="display:none"`
+  )
+  
+  res.setHeader('Content-Type', 'text/html')
+  return res.status(200).send(TOOL_HTML)
+}
