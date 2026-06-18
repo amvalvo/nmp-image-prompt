@@ -40,7 +40,7 @@
   .char-count.warn { color: #e07c00; }
 
   /* Style + palette grids */
-  .style-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.25rem; }
+  .style-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 1.25rem; }
   .palette-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 0; }
   .style-option { border: 1.5px solid var(--border-strong); border-radius: var(--radius); padding: 12px 14px; cursor: pointer; transition: all 0.15s; background: #fff; text-align: left; }
   .style-option:hover { border-color: var(--blue); background: rgba(9,167,233,0.03); }
@@ -190,9 +190,22 @@
         <div class="style-option-name"><span class="style-dot" style="background:#2e4164"></span>Currency Engraving</div>
         <div class="style-option-desc">Fine-line intaglio crosshatching reminiscent of US banknotes and 19th century illustration.</div>
       </div>
-      <div class="style-option" data-style="documentary" onclick="selectStyle('documentary', this)">
+      <div class="style-option" data-style="illustrative" onclick="selectStyle('illustrative', this)">
+              <div class="style-option-name"><span class="style-dot" style="background:#e8e8e8;border:1px solid #ccc"></span>Illustrative</div>
+              <div class="style-option-desc">Clean objects on light backgrounds. Conceptual and witty. No texture or collage layering.</div>
+            </div>
+            <div class="style-option" data-style="documentary" onclick="selectStyle('documentary', this)">
         <div class="style-option-name"><span class="style-dot" style="background:#18243a"></span>Documentary</div>
         <div class="style-option-desc">High-contrast editorial photography. Journalistic, monochromatic, heavy and real.</div>
+      </div>
+    </div>
+
+
+    <div style="display:flex;align-items:center;gap:10px;margin-top:1.25rem;margin-bottom:0.25rem">
+      <span style="font-size:12px;font-family:var(--font-mono);color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em">Background tone</span>
+      <div style="display:flex;background:rgba(24,36,58,0.06);border-radius:20px;padding:3px;gap:2px">
+        <button data-bg="dark" onclick="window.selectBg('dark')" style="font-size:12px;font-family:var(--font-sans);padding:4px 14px;border:none;border-radius:16px;cursor:pointer;background:#18243a;color:#fff;transition:all 0.15s">Dark</button>
+        <button data-bg="light" onclick="window.selectBg('light')" style="font-size:12px;font-family:var(--font-sans);padding:4px 14px;border:none;border-radius:16px;cursor:pointer;background:transparent;color:var(--text-secondary);transition:all 0.15s">Light</button>
       </div>
     </div>
 
@@ -368,6 +381,7 @@
 let activeTab = 'url';
 let activeStyle = 'editorial';
 let activePalette = 'blues';
+        let activeBg = 'dark';
 let userImage = null;
 
 // ─── Palette definitions ──────────────────────────────────────────────────────
@@ -439,6 +453,19 @@ function selectPalette(palette, el) {
   document.getElementById('custom-palette-inputs').style.display = palette === 'custom' ? 'block' : 'none';
 }
 
+
+        function selectBg(bg) {
+          activeBg = bg;
+          document.querySelectorAll('[data-bg]').forEach(b => {
+            if (b.getAttribute('data-bg') === bg) {
+              b.style.background = '#18243a'; b.style.color = '#fff';
+            } else {
+              b.style.background = 'transparent'; b.style.color = 'var(--text-secondary)';
+            }
+          });
+        }
+        window.selectBg = selectBg;
+
 function updateHexPreview(n) {
   const val = document.getElementById('hex-' + n).value.trim();
   const preview = document.getElementById('preview-' + n);
@@ -501,7 +528,15 @@ async function generate() {
     paletteDe = PALETTES[activePalette].de;
   }
 
-  const STYLES = buildStyleStrings(paletteMj, paletteDe);
+  const bgInstructionDe = activeBg === 'light'
+            ? 'Use a light, neutral background (#f5f4f0 or white or pale warm grey). Keep the overall tone airy and clean, not dark or heavy.'
+            : 'Use a deep dark background — navy (#18243a) or very dark blue-black. The overall tone should feel editorial and authoritative.';
+          const bgInstructionMj = activeBg === 'light' ? '--style raw' : '--style raw';
+          const STYLES = buildStyleStrings(paletteMj, paletteDe);
+          // Append bg instruction to DE styles
+          Object.keys(STYLES).forEach(k => {
+            STYLES[k].de = STYLES[k].de + ' ' + bgInstructionDe;
+          });
   const style = STYLES[activeStyle];
   const target = document.getElementById('target').value;
   const numVars = parseInt(document.getElementById('variations').value);
@@ -521,7 +556,7 @@ async function generate() {
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
         max_tokens: 1200,
-        messages: [{ role: 'user', content: 'You are an expert art director for NMP (National Mortgage Professional), a B2B financial news publication covering mortgages, housing, lending, interest rates, regulation, and the US economy.\n\nInput: ' + context + buildLogoContext() + '\n\nIdentify the core article topic in one sentence, then write ' + numVars + ' visual subject description' + (numVars > 1 ? 's' : '') + ' (15-25 words each) for editorial thumbnail imagery. Each should describe a different visual concept — specific objects, scenes, or symbols that represent the article. Think: dollar bills, federal buildings, mortgage documents, housing developments, scales of justice, rate charts, handshakes, etc.' + (buildLogoContext() ? ' Where relevant, incorporate visual elements from the company logos described above.' : '') + '\n\nRespond EXACTLY in this format, nothing else:\nTOPIC: [one sentence]\n---\n[subject 1]' + (numVars > 1 ? '\n[subject 2]' : '') + (numVars > 2 ? '\n[subject 3]' : '') }]
+        messages: [{ role: 'user', content: 'You are an expert art director for NMP (National Mortgage Professional), a B2B financial news publication covering mortgages, housing, lending, interest rates, regulation, and the US economy.\n\nInput: ' + context + buildLogoContext() + '\n\nIdentify the core article topic in one sentence, then write ' + numVars + ' visual subject description' + (numVars > 1 ? 's' : '') + ' (15-25 words each) for editorial thumbnail imagery. Each should describe a different visual concept — specific objects, scenes, or symbols that represent the article. Think: dollar bills, federal buildings, mortgage documents, housing developments, scales of justice, rate charts, handshakes, etc.' + (buildLogoContext() ? ' Where relevant, incorporate visual elements from the company logos described above.' : '') + '\n\nRespond EXACTLY in this format, nothing else:\nTOPIC: [one sentence]\nPEOPLE: [comma-separated list of any real named public figures mentioned in the article, or NONE]\nPHOTO_SOURCES: [if PEOPLE is not NONE, suggest 1-2 specific free-to-use photo sources for each person — e.g. Wikimedia Commons, official government press photo page, Flickr White House stream, Federal Reserve press releases, CFPB newsroom, HUD newsroom, Treasury.gov media. If NONE write NONE]\n---\n[subject 1]' + (numVars > 1 ? '\n[subject 2]' : '') + (numVars > 2 ? '\n[subject 3]' : '') }]
       })
     });
 
@@ -533,12 +568,23 @@ async function generate() {
     const data = await resp.json();
     const text = data.content?.find(b => b.type === 'text')?.text || '';
     const topicMatch = text.match(/TOPIC:\s*(.+)/);
-    const subjects = (text.split('---')[1] || '').trim().split('\n').map(l => l.trim()).filter(l => l.length > 8).slice(0, numVars);
+    const afterDash = text.split('---')[1] || '';
+            const subjects = afterDash.trim().split('\n')
+              .map(l => l.trim())
+              .filter(l => l.length > 8 && !l.startsWith('PEOPLE:') && !l.startsWith('PHOTO_SOURCES:') && !l.startsWith('TOPIC:'))
+              .slice(0, numVars);
 
     if (!subjects.length) throw new Error('Could not parse response — please try again.');
 
     if (topicMatch) {
       topicEl.innerHTML = '<div class="topic-pill"><div class="topic-dot"></div> ' + esc(topicMatch[1].trim()) + '</div>';
+      // Show real people + photo sources if detected
+      const peopleMatch = text.match(/PEOPLE:\s*(.+)/);
+      const sourcesMatch = text.match(/PHOTO_SOURCES:\s*(.+)/);
+      if (peopleMatch && peopleMatch[1].trim() !== 'NONE') {
+        const sources = sourcesMatch && sourcesMatch[1].trim() !== 'NONE' ? sourcesMatch[1].trim() : 'Wikimedia Commons, official agency newsroom';
+        topicEl.innerHTML += '<div style="margin-top:8px;font-size:12px;font-family:var(--font-mono);background:rgba(9,167,233,0.06);border:1px solid rgba(9,167,233,0.2);border-radius:8px;padding:10px 14px;line-height:1.7;color:var(--text-secondary)"><span style="color:var(--text-primary);font-weight:500">📸 Real people in this story:</span> ' + esc(peopleMatch[1].trim()) + '<br><span style="color:var(--text-primary);font-weight:500">Free photo sources:</span> ' + esc(sources) + '</div>';
+      }
       topicEl.style.display = 'block';
     }
 
