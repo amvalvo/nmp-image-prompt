@@ -22,7 +22,8 @@ export default async function handler(req, res) {
     })
     const user = await userRes.json()
 
-    if (!user.email?.endsWith('@ambizmedia.com')) {
+    const allowedDomains = ['@ambizmedia.com', '@maxclass.com', '@adstratllc.com']
+if (!allowedDomains.some(domain => user.email?.endsWith(domain))) {
       return res.redirect('/auth/login?error=AccessDenied')
     }
 
