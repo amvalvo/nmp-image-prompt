@@ -744,6 +744,13 @@ function downloadWatermarked() {
   link.href = canvas.toDataURL('image/png');
   link.click();
 }
+ function resetWatermark() {
+  userImage = null;
+  document.getElementById('wm-output').style.display = 'none';
+  document.getElementById('wm-drop').style.display = 'block';
+  document.getElementById('wm-file-input').value = '';
+}
+window.resetWatermark = resetWatermark;
 
 // ─── Logo uploads ─────────────────────────────────────────────────────────────
 
